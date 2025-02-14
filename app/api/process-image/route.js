@@ -23,8 +23,10 @@ export async function POST(request) {
     });
 
     // Initialize Gradio client
-    const client = await Client.connect("http://127.0.0.1:7865/");
-
+    //local
+    //const client = await Client.connect("http://127.0.0.1:7865/");
+    //remote
+    const client = await Client.connect("ritesh2706/partsWithEditor");
     // Make prediction using the blob
     const result = await client.predict("/detect", [
       imageBlob,
@@ -32,7 +34,7 @@ export async function POST(request) {
       conf,
       iou,
     ]);
-    console.log(result);
+
     if (!result.data) {
       throw new Error("No data received from Gradio");
     }
