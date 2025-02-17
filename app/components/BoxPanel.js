@@ -1,3 +1,4 @@
+// BoxesPanel.jsx
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { BoxItem } from "./BoxItem";
@@ -9,8 +10,9 @@ export const BoxesPanel = ({
   onSelectBox,
   onDeleteBox,
 }) => {
+  console.log(modelBoxes);
   return (
-    <div className="w-72 space-y-4">
+    <div className="w-full space-y-4">
       <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-3 space-y-3">
           <div>
@@ -32,6 +34,11 @@ export const BoxesPanel = ({
                   onDelete={onDeleteBox}
                 />
               ))}
+              {modelBoxes.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-2">
+                  No model predictions
+                </p>
+              )}
             </div>
           </div>
 
@@ -54,6 +61,11 @@ export const BoxesPanel = ({
                   onDelete={onDeleteBox}
                 />
               ))}
+              {userBoxes.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-2">
+                  No user boxes
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

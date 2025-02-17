@@ -38,7 +38,7 @@ export async function POST(request) {
     if (!result.data) {
       throw new Error("No data received from Gradio");
     }
-
+    console.log(result.data);
     // Extract the components from the result
     const [processedImageData, detectionResults, status, boundingBoxes] =
       result.data;

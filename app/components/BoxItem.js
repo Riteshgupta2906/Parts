@@ -1,3 +1,4 @@
+// BoxItem.jsx
 import React from "react";
 import { Trash2 } from "lucide-react";
 
@@ -38,10 +39,12 @@ export const BoxItem = ({
           className="h-4 w-4 text-red-400 hover:text-red-300 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
-            onDelete();
+            onDelete(id);
           }}
         />
       )}
     </div>
   );
 };
+
+export default BoxItem;

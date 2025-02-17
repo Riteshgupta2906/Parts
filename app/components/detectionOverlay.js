@@ -1,132 +1,37 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import Canvas from "./canvas";
 import { BoxesPanel } from "./BoxPanel";
-import { useBoxEditor } from "./useBoxEditor";
+import { Layers, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-// const CombinedBoundingBoxEditor = ({ results, originalImage }) => {
-//   const {
-//     userBoxes,
-//     setUserBoxes,
-//     modelBoxes,
-//     setModelBoxes,
-//     isDrawing,
-//     setIsDrawing,
-//     startPoint,
-//     setStartPoint,
-//     selectedBoxId,
-//     setSelectedBoxId,
-//     selectedBoxType,
-//     setSelectedBoxType,
-//     isPointInBox,
-//     handleDelete,
-//   } = useBoxEditor(results);
-
-//   const handleBoxUpdate = (boxId, newCoordinates) => {
-//     if (boxId.startsWith("model-")) {
-//       setModelBoxes((boxes) =>
-//         boxes.map((box) =>
-//           box.id === boxId ? { ...box, coordinates: newCoordinates } : box
-//         )
-//       );
-//     } else {
-//       const index = parseInt(boxId.split("-")[1]);
-//       setUserBoxes((boxes) =>
-//         boxes.map((box, i) =>
-//           i === index ? { ...box, coordinates: newCoordinates } : box
-//         )
-//       );
-//     }
-//   };
-
-//   const handleMouseDown = (e) => {
-//     const rect = e.target.getBoundingClientRect();
-//     const x = (e.clientX - rect.left) * (e.target.width / rect.width);
-//     const y = (e.clientY - rect.top) * (e.target.height / rect.height);
-
-//     // Check if clicking on existing box
-//     const clickedModelBox = modelBoxes.find((box) =>
-//       isPointInBox(x, y, box.coordinates)
-//     );
-//     const clickedUserBox = userBoxes.find((box) =>
-//       isPointInBox(x, y, box.coordinates)
-//     );
-
-//     if (clickedModelBox) {
-//       setSelectedBoxId(clickedModelBox.id);
-//       setSelectedBoxType("model");
-//     } else if (clickedUserBox) {
-//       const index = userBoxes.indexOf(clickedUserBox);
-//       setSelectedBoxId(`user-${index}`);
-//       setSelectedBoxType("user");
-//     } else {
-//       setIsDrawing(true);
-//       setStartPoint({ x, y });
-//       setSelectedBoxId(null);
-//       setSelectedBoxType(null);
-//     }
-//   };
-
-//   const handleMouseMove = (e) => {
-//     // Handle mouse move if needed
-//   };
-
-//   const handleMouseUp = (e, newBoxCoords) => {
-//     if (isDrawing && newBoxCoords) {
-//       const newBox = {
-//         id: `user-${userBoxes.length}`,
-//         coordinates: newBoxCoords,
-//       };
-
-//       setUserBoxes([...userBoxes, newBox]);
-//       setIsDrawing(false);
-//       setStartPoint({ x: 0, y: 0 });
-//     }
-//   };
-
-//   const handleKeyDown = (e) => {
-//     if (e.key === "Delete" || e.key === "Backspace") {
-//       handleDelete();
-//     }
-//   };
-
-//   const handleSelectBox = (id, type) => {
-//     setSelectedBoxId(id);
-//     setSelectedBoxType(type);
-//   };
-
-//   return (
-//     <div className="flex gap-4">
-//       <Canvas
-//         originalImage={originalImage}
-//         modelBoxes={modelBoxes}
-//         userBoxes={userBoxes}
-//         selectedBoxId={selectedBoxId}
-//         onMouseDown={handleMouseDown}
-//         onMouseMove={handleMouseMove}
-//         onMouseUp={handleMouseUp}
-//         onKeyDown={handleKeyDown}
-//         onBoxUpdate={handleBoxUpdate}
-//       />
-//       <BoxesPanel
-//         modelBoxes={modelBoxes}
-//         userBoxes={userBoxes}
-//         selectedBoxId={selectedBoxId}
-//         onSelectBox={handleSelectBox}
-//         onDeleteBox={handleDelete}
-//       />
-//     </div>
-//   );
-// };
 const CombinedBoundingBoxEditor = ({ results, originalImage }) => {
   const [userBoxes, setUserBoxes] = useState([]);
   const [modelBoxes, setModelBoxes] = useState([]);
   const [selectedBoxId, setSelectedBoxId] = useState(null);
   const [selectedBoxType, setSelectedBoxType] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showBoxesPanel, setShowBoxesPanel] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 0
+  );
 
   useEffect(() => {
-    if (results?.data?.boundingBoxes) {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setWindowWidth(width);
+      setIsMobile(width < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (results?.boundingBoxes) {
       setModelBoxes(
-        results.data.boundingBoxes.map((box, index) => ({
+        results.boundingBoxes.map((box, index) => ({
           ...box,
           id: `model-${index}`,
         }))
@@ -139,7 +44,7 @@ const CombinedBoundingBoxEditor = ({ results, originalImage }) => {
     return x >= x1 && x <= x2 && y >= y1 && y <= y2;
   };
 
-  const handleMouseDown = (e) => {
+  const handlePointerDown = (e) => {
     const rect = e.target.getBoundingClientRect();
     const x = (e.clientX - rect.left) * (e.target.width / rect.width);
     const y = (e.clientY - rect.top) * (e.target.height / rect.height);
@@ -164,11 +69,13 @@ const CombinedBoundingBoxEditor = ({ results, originalImage }) => {
     }
   };
 
-  const handleMouseMove = (e) => {
-    // Handle any global mouse move logic if needed
+  const handlePointerMove = (e) => {
+    if (e.pointerType === "touch") {
+      e.preventDefault();
+    }
   };
 
-  const handleMouseUp = (e, newBoxCoords) => {
+  const handlePointerUp = (e, newBoxCoords) => {
     if (newBoxCoords) {
       const newBox = {
         id: `user-${userBoxes.length}`,
@@ -220,36 +127,81 @@ const CombinedBoundingBoxEditor = ({ results, originalImage }) => {
     setSelectedBoxType(type);
   };
 
+  const totalBoxes = modelBoxes.length + userBoxes.length;
+
   return (
-    <div className="flex gap-4">
-      <Canvas
-        originalImage={originalImage}
-        modelBoxes={modelBoxes}
-        userBoxes={userBoxes}
-        selectedBoxId={selectedBoxId}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onKeyDown={handleKeyDown}
-        onBoxUpdate={handleBoxUpdate}
-        onDelete={(boxId) => {
-          if (boxId.startsWith("model-")) {
-            setModelBoxes((boxes) => boxes.filter((box) => box.id !== boxId));
-          } else {
-            const index = parseInt(boxId.split("-")[1]);
-            setUserBoxes((boxes) => boxes.filter((_, i) => i !== index));
-          }
-          setSelectedBoxId(null);
-          setSelectedBoxType(null);
-        }}
-      />
-      <BoxesPanel
-        modelBoxes={modelBoxes}
-        userBoxes={userBoxes}
-        selectedBoxId={selectedBoxId}
-        onSelectBox={handleSelectBox}
-        onDeleteBox={handleDelete}
-      />
+    <div className="relative w-full">
+      {/* Top Bar */}
+      <div className="sticky top-0 z-20 bg-gray-900 border-b border-gray-800 px-4 py-2 mb-4">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 text-gray-200 hover:text-white hover:bg-gray-800"
+            onClick={() => setShowBoxesPanel(!showBoxesPanel)}
+          >
+            {showBoxesPanel ? (
+              <PanelLeftClose size={20} />
+            ) : (
+              <PanelLeftOpen size={20} />
+            )}
+            <span className="hidden sm:inline">Show Boxes Panel</span>
+          </Button>
+          <div className="flex items-center gap-2">
+            <Layers size={20} className="text-gray-400" />
+            <span className="text-sm text-gray-200">
+              {totalBoxes} {totalBoxes === 1 ? "Box" : "Boxes"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-col w-full">
+        {/* Mobile Boxes Panel - Shown above canvas when toggled */}
+        {showBoxesPanel && (
+          <div className="w-full md:hidden mb-4 bg-gray-800 border border-gray-700 rounded-lg">
+            <div className="h-48 overflow-y-auto">
+              <BoxesPanel
+                modelBoxes={modelBoxes}
+                userBoxes={userBoxes}
+                selectedBoxId={selectedBoxId}
+                onSelectBox={handleSelectBox}
+                onDeleteBox={handleDelete}
+                isMobile={isMobile}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Canvas Section */}
+        <div className="relative w-full h-[calc(100vh-8rem)]">
+          <Canvas
+            originalImage={originalImage}
+            modelBoxes={modelBoxes}
+            userBoxes={userBoxes}
+            selectedBoxId={selectedBoxId}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onKeyDown={handleKeyDown}
+            onBoxUpdate={handleBoxUpdate}
+            onDelete={(boxId) => {
+              if (boxId.startsWith("model-")) {
+                setModelBoxes((boxes) =>
+                  boxes.filter((box) => box.id !== boxId)
+                );
+              } else {
+                const index = parseInt(boxId.split("-")[1]);
+                setUserBoxes((boxes) => boxes.filter((_, i) => i !== index));
+              }
+              setSelectedBoxId(null);
+              setSelectedBoxType(null);
+            }}
+            isMobile={isMobile}
+          />
+        </div>
+      </div>
     </div>
   );
 };
