@@ -33,7 +33,7 @@ const ResultsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 ">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 pt-8 ">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <h1 className="text-4xl font-bold text-center md:text-left bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
